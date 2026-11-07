@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة إدارة الدحيح</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#f1f5f9;font-family:Cairo,sans-serif;color:#172b3a}
+    .container{max-width:650px;margin:55px auto;padding:20px}
+    .card{background:white;padding:28px;border-radius:18px;box-shadow:0 8px 30px #0f172a12}
+    h1{color:#0f766e;margin-top:0}
+    p{color:#64748b;line-height:1.8}
+    label{display:block;margin:15px 0 6px;font-weight:700}
+    input{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font:inherit}
+    button{width:100%;padding:13px;margin-top:18px;border:0;border-radius:10px;background:#0f766e;color:white;font:inherit;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.6;cursor:wait}
+    #message{margin-top:15px;padding:12px;border-radius:10px;display:none;line-height:1.8}
+    .error{background:#fee2e2;color:#991b1b}
+    .success{background:#dcfce7;color:#166534}
+    .dashboard{display:none}
+    .item{padding:15px;background:#f0fdfa;border-radius:12px;margin-top:12px}
+    .logout{background:#475569}
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <h1>لوحة إدارة الدحيح</h1>
+      <p>تسجيل دخول المسؤول والتحقق من صلاحيات الإدارة.</p>
+
+      <div id="loginBox">
+        <label for="email">البريد الإلكتروني</label>
+        <input id="email" type="email" placeholder="البريد المسجل في الموقع">
+
+        <label for="password">كلمة المرور</label>
+        <input id="password" type="password" placeholder="كلمة المرور">
+
+        <button id="loginBtn">تسجيل الدخول</button>
+      </div>
+
+      <div id="dashboard" class="dashboard">
+        <h2>أهلًا بك في لوحة الإدارة</h2>
+        <div class="item">تم التحقق من حسابك وصلاحية الأدمن.</div>
+        <div class="item">الخطوة التالية: تجهيز إدارة الرسائل الجماعية ووضع الصيانة.</div>
+        <button class="logout" id="logoutBtn">تسجيل الخروج</button>
+      </div>
+
+      <div id="message"></div>
+    </section>
+  </main>
+
+<script>
+const SUPABASE_URL = 'https://yqkajdnxylujrtkeshsq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_6gkAJgmAo6MKt2kn1_Oamg_sAwR-1vW';
+
+const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const loginBox = document.getElementById('loginBox');
+const dashboard = document.getElementById('dashboard');
+const message = document.getElementById('message');
+const loginBtn = document.getElementById('loginBtn');
+
+function showMessage(text, type='error') {
+  message.textContent = text;
+  message.className = type;
+  message.style.display = 'block';
+}
+
+async function checkAdmin(user) {
+  const { data, error } = await client
+    .from('site_admins')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (error) {
+    showMessage('تعذر التحقق من صلاحيات الأدمن. راجع سياسات RLS لجدول site_admins.');
+    return false;
+  }
+
+  if (!data) {
+    showMessage('هذا الحساب ليس لديه صلاحية الأدمن.');
+    await client.auth.signOut();
+    return false;
+  }
+
+  loginBox.style.display = 'none';
+  dashboard.style.display = 'block';
+  message.style.display = 'none';
+  return true;
+}
+
+loginBtn.addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!email || !password) {
+    showMessage('اكتب البريد الإلكتروني وكلمة المرور.');
+    return;
+  }
+
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'جاري التحقق...';
+
+  const { data, error } = await client.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    showMessage('تعذر تسجيل الدخول: ' + error.message);
+  } else {
+    await checkAdmin(data.user);
+  }
+
+  loginBtn.disabled = false;
+  loginBtn.textContent = 'تسجيل الدخول';
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await client.auth.signOut();
+  dashboard.style.display = 'none';
+  loginBox.style.display = 'block';
+  showMessage('تم تسجيل الخروج.', 'success');
+});
+
+async function start() {
+  const { data } = await client.auth.getSession();
+  if (data.session) {
+    await checkAdmin(data.session.user);
+  }
+}
+
+start();
+</script>
+</body>
+</html>
