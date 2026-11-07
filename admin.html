@@ -2,136 +2,365 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة إدارة الدحيح</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    *{box-sizing:border-box}
-    body{margin:0;background:#f1f5f9;font-family:Cairo,sans-serif;color:#172b3a}
-    .container{max-width:650px;margin:55px auto;padding:20px}
-    .card{background:white;padding:28px;border-radius:18px;box-shadow:0 8px 30px #0f172a12}
-    h1{color:#0f766e;margin-top:0}
-    p{color:#64748b;line-height:1.8}
-    label{display:block;margin:15px 0 6px;font-weight:700}
-    input{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font:inherit}
-    button{width:100%;padding:13px;margin-top:18px;border:0;border-radius:10px;background:#0f766e;color:white;font:inherit;font-weight:700;cursor:pointer}
-    button:disabled{opacity:.6;cursor:wait}
-    #message{margin-top:15px;padding:12px;border-radius:10px;display:none;line-height:1.8}
-    .error{background:#fee2e2;color:#991b1b}
-    .success{background:#dcfce7;color:#166534}
-    .dashboard{display:none}
-    .item{padding:15px;background:#f0fdfa;border-radius:12px;margin-top:12px}
-    .logout{background:#475569}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>إدارة الدحيح</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f5f9;color:#172b3a;font-family:Cairo,sans-serif}
+header{background:#0f766e;color:white;padding:20px}
+header h1{margin:0;font-size:23px}
+header p{margin:5px 0 0;color:#d1fae5}
+.container{max-width:900px;margin:25px auto;padding:15px}
+.card{background:white;padding:22px;border-radius:16px;margin-bottom:18px;box-shadow:0 5px 20px #00000009}
+h2{font-size:19px;margin-top:0;color:#0f766e}
+label{display:block;font-weight:700;margin:12px 0 6px}
+input,textarea,select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font:inherit}
+textarea{min-height:110px;resize:vertical}
+button{border:0;padding:12px 18px;border-radius:9px;background:#0f766e;color:white;font:inherit;font-weight:700;cursor:pointer;margin-top:12px}
+button:disabled{opacity:.6;cursor:wait}
+.danger{background:#b91c1c}
+.gray{background:#475569}
+.status{padding:13px;border-radius:10px;background:#f1f5f9;margin:12px 0}
+.msg{padding:12px;border-radius:9px;margin-top:15px;display:none;line-height:1.8}
+.error{background:#fee2e2;color:#991b1b}
+.success{background:#dcfce7;color:#166534}
+.login{max-width:450px;margin:50px auto}
+.hidden{display:none!important}
+.announcement{border:1px solid #e2e8f0;padding:15px;border-radius:12px;margin-top:12px}
+.announcement p{line-height:1.8;white-space:pre-wrap}
+.small{font-size:13px;color:#64748b}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row button{flex:1}
+</style>
 </head>
 <body>
-  <main class="container">
-    <section class="card">
-      <h1>لوحة إدارة الدحيح</h1>
-      <p>تسجيل دخول المسؤول والتحقق من صلاحيات الإدارة.</p>
 
-      <div id="loginBox">
-        <label for="email">البريد الإلكتروني</label>
-        <input id="email" type="email" placeholder="البريد المسجل في الموقع">
+<header>
+<h1>لوحة إدارة الدحيح</h1>
+<p>إدارة المنصة والرسائل الجماعية</p>
+</header>
 
-        <label for="password">كلمة المرور</label>
-        <input id="password" type="password" placeholder="كلمة المرور">
+<main class="container">
 
-        <button id="loginBtn">تسجيل الدخول</button>
-      </div>
+<section id="loginBox" class="card login">
+<h2>تسجيل دخول الأدمن</h2>
+<label>البريد الإلكتروني</label>
+<input id="email" type="email" placeholder="البريد الإلكتروني">
+<label>كلمة المرور</label>
+<input id="password" type="password" placeholder="كلمة المرور">
+<button id="loginBtn">تسجيل الدخول</button>
+<div id="loginMsg" class="msg"></div>
+</section>
 
-      <div id="dashboard" class="dashboard">
-        <h2>أهلًا بك في لوحة الإدارة</h2>
-        <div class="item">تم التحقق من حسابك وصلاحية الأدمن.</div>
-        <div class="item">الخطوة التالية: تجهيز إدارة الرسائل الجماعية ووضع الصيانة.</div>
-        <button class="logout" id="logoutBtn">تسجيل الخروج</button>
-      </div>
+<section id="dashboard" class="hidden">
 
-      <div id="message"></div>
-    </section>
-  </main>
+<div class="card">
+<div class="row">
+<h2 style="margin:0">مرحبًا بك في لوحة الإدارة</h2>
+<button id="logoutBtn" class="gray">تسجيل الخروج</button>
+</div>
+<p class="small">تم التحقق من صلاحيات حساب الأدمن.</p>
+</div>
+
+<div class="card">
+<h2>وضع الصيانة</h2>
+<div class="status">
+حالة الموقع الحالية: <strong id="maintenanceStatus">جاري التحميل...</strong>
+</div>
+<label>رسالة الصيانة التي ستظهر للزوار</label>
+<textarea id="maintenanceMessage" placeholder="الموقع تحت الصيانة، سنعود قريبًا..."></textarea>
+<div class="row">
+<button id="enableMaintenance" class="danger">تشغيل الصيانة</button>
+<button id="disableMaintenance">إيقاف الصيانة</button>
+</div>
+<div id="maintenanceMsg" class="msg"></div>
+</div>
+
+<div class="card">
+<h2>إرسال رسالة جماعية</h2>
+<label>عنوان الرسالة</label>
+<input id="announcementTitle" maxlength="150" placeholder="مثال: إعلان مهم">
+<label>محتوى الرسالة</label>
+<textarea id="announcementMessage" maxlength="5000" placeholder="اكتب رسالتك للطلاب..."></textarea>
+<label>نوع الرسالة</label>
+<select id="announcementType">
+<option value="info">معلومات</option>
+<option value="success">نجاح</option>
+<option value="warning">تحذير</option>
+<option value="important">مهم</option>
+</select>
+<button id="sendAnnouncement">نشر الرسالة لجميع الطلاب</button>
+<div id="announcementMsg" class="msg"></div>
+</div>
+
+<div class="card">
+<div class="row">
+<h2 style="margin:0">الرسائل المنشورة</h2>
+<button id="refreshAnnouncements" class="gray">تحديث القائمة</button>
+</div>
+<div id="announcementsList">
+<p class="small">جاري تحميل الرسائل...</p>
+</div>
+</div>
+
+</section>
+</main>
 
 <script>
 const SUPABASE_URL = 'https://yqkajdnxylujrtkeshsq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_6gkAJgmAo6MKt2kn1_Oamg_sAwR-1vW';
 
-const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const loginBox = document.getElementById('loginBox');
-const dashboard = document.getElementById('dashboard');
-const message = document.getElementById('message');
-const loginBtn = document.getElementById('loginBtn');
+const $ = id => document.getElementById(id);
 
-function showMessage(text, type='error') {
-  message.textContent = text;
-  message.className = type;
-  message.style.display = 'block';
+function showMsg(id,text,type='error'){
+  const el=$(id);
+  el.textContent=text;
+  el.className='msg '+type;
+  el.style.display='block';
 }
 
-async function checkAdmin(user) {
-  const { data, error } = await client
+function hideMsg(id){
+  $(id).style.display='none';
+}
+
+async function verifyAdmin(user){
+  const {data,error}=await db
     .from('site_admins')
     .select('user_id')
-    .eq('user_id', user.id)
+    .eq('user_id',user.id)
     .maybeSingle();
 
-  if (error) {
-    showMessage('تعذر التحقق من صلاحيات الأدمن. راجع سياسات RLS لجدول site_admins.');
-    return false;
-  }
+  if(error) throw new Error('فشل التحقق من صلاحيات الأدمن: '+error.message);
+  if(!data) throw new Error('هذا الحساب ليس مسؤولًا.');
 
-  if (!data) {
-    showMessage('هذا الحساب ليس لديه صلاحية الأدمن.');
-    await client.auth.signOut();
-    return false;
-  }
+  $('loginBox').classList.add('hidden');
+  $('dashboard').classList.remove('hidden');
 
-  loginBox.style.display = 'none';
-  dashboard.style.display = 'block';
-  message.style.display = 'none';
-  return true;
+  await loadMaintenance();
+  await loadAnnouncements();
 }
 
-loginBtn.addEventListener('click', async () => {
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
+async function login(){
+  const email=$('email').value.trim();
+  const password=$('password').value;
 
-  if (!email || !password) {
-    showMessage('اكتب البريد الإلكتروني وكلمة المرور.');
+  if(!email || !password){
+    showMsg('loginMsg','اكتب البريد وكلمة المرور.');
     return;
   }
 
-  loginBtn.disabled = true;
-  loginBtn.textContent = 'جاري التحقق...';
+  $('loginBtn').disabled=true;
+  $('loginBtn').textContent='جاري الدخول...';
 
-  const { data, error } = await client.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    showMessage('تعذر تسجيل الدخول: ' + error.message);
-  } else {
-    await checkAdmin(data.user);
+  try{
+    const {data,error}=await db.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    await verifyAdmin(data.user);
+  }catch(e){
+    showMsg('loginMsg',e.message);
+    await db.auth.signOut();
   }
 
-  loginBtn.disabled = false;
-  loginBtn.textContent = 'تسجيل الدخول';
+  $('loginBtn').disabled=false;
+  $('loginBtn').textContent='تسجيل الدخول';
+}
+
+async function loadMaintenance(){
+  const {data,error}=await db
+    .from('site_settings')
+    .select('id,maintenance_mode,maintenance_message')
+    .eq('id',1)
+    .single();
+
+  if(error) throw new Error('تعذر تحميل إعدادات الصيانة: '+error.message);
+
+  $('maintenanceStatus').textContent=
+    data.maintenance_mode ? 'الصيانة مفعّلة' : 'الموقع يعمل بشكل طبيعي';
+
+  $('maintenanceMessage').value=data.maintenance_message || '';
+}
+
+async function setMaintenance(enabled){
+  hideMsg('maintenanceMsg');
+
+  const message=$('maintenanceMessage').value.trim();
+
+  try{
+    const {error}=await db
+      .from('site_settings')
+      .update({
+        maintenance_mode:enabled,
+        maintenance_message:message,
+        updated_at:new Date().toISOString()
+      })
+      .eq('id',1);
+
+    if(error) throw error;
+
+    await loadMaintenance();
+
+    showMsg(
+      'maintenanceMsg',
+      enabled ? 'تم تشغيل وضع الصيانة.' : 'تم إيقاف وضع الصيانة.',
+      'success'
+    );
+  }catch(e){
+    showMsg('maintenanceMsg','تعذر تغيير وضع الصيانة: '+e.message);
+  }
+}
+
+async function sendAnnouncement(){
+  hideMsg('announcementMsg');
+
+  const title=$('announcementTitle').value.trim();
+  const message=$('announcementMessage').value.trim();
+  const type=$('announcementType').value;
+
+  if(!title || !message){
+    showMsg('announcementMsg','اكتب العنوان ومحتوى الرسالة.');
+    return;
+  }
+
+  $('sendAnnouncement').disabled=true;
+
+  try{
+    const {error}=await db
+      .from('announcements')
+      .insert([{
+        title:title,
+        message:message,
+        type:type,
+        is_active:true
+      }]);
+
+    if(error) throw error;
+
+    $('announcementTitle').value='';
+    $('announcementMessage').value='';
+
+    showMsg('announcementMsg','تم نشر الرسالة بنجاح.','success');
+
+    await loadAnnouncements();
+
+  }catch(e){
+    showMsg('announcementMsg','فشل نشر الرسالة: '+e.message);
+  }
+
+  $('sendAnnouncement').disabled=false;
+}
+
+async function loadAnnouncements(){
+  const box=$('announcementsList');
+  box.textContent='جاري تحميل الرسائل...';
+
+  try{
+    const {data,error}=await db
+      .from('announcements')
+      .select('*')
+      .order('created_at',{ascending:false});
+
+    if(error) throw error;
+
+    box.innerHTML='';
+
+    if(!data || data.length===0){
+      box.textContent='لا توجد رسائل حتى الآن.';
+      return;
+    }
+
+    data.forEach(item=>{
+      const card=document.createElement('div');
+      card.className='announcement';
+
+      const title=document.createElement('h3');
+      title.textContent=item.title;
+
+      const content=document.createElement('p');
+      content.textContent=item.message;
+
+      const info=document.createElement('div');
+      info.className='small';
+      info.textContent=
+        'النوع: '+item.type+
+        ' | الحالة: '+(item.is_active?'مفعّلة':'متوقفة')+
+        ' | التاريخ: '+(item.created_at ? new Date(item.created_at).toLocaleString('ar-EG') : 'غير محدد');
+
+      card.append(title,content,info);
+
+      if(item.is_active){
+        const stop=document.createElement('button');
+        stop.className='danger';
+        stop.textContent='إيقاف الرسالة';
+
+        stop.onclick=async()=>{
+          if(!confirm('هل تريد إيقاف هذه الرسالة؟')) return;
+
+          stop.disabled=true;
+
+          const {error}=await db
+            .from('announcements')
+            .update({is_active:false})
+            .eq('id',item.id);
+
+          if(error){
+            alert('تعذر إيقاف الرسالة: '+error.message);
+            stop.disabled=false;
+          }else{
+            await loadAnnouncements();
+          }
+        };
+
+        card.appendChild(stop);
+      }
+
+      box.appendChild(card);
+    });
+
+  }catch(e){
+    box.textContent='تعذر تحميل الرسائل: '+e.message;
+  }
+}
+
+$('loginBtn').addEventListener('click',login);
+$('password').addEventListener('keydown',e=>{
+  if(e.key==='Enter') login();
 });
 
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-  await client.auth.signOut();
-  dashboard.style.display = 'none';
-  loginBox.style.display = 'block';
-  showMessage('تم تسجيل الخروج.', 'success');
+$('enableMaintenance').addEventListener('click',()=>{
+  if(confirm('هل تريد تشغيل وضع الصيانة؟')){
+    setMaintenance(true);
+  }
 });
 
-async function start() {
-  const { data } = await client.auth.getSession();
-  if (data.session) {
-    await checkAdmin(data.session.user);
+$('disableMaintenance').addEventListener('click',()=>{
+  setMaintenance(false);
+});
+
+$('sendAnnouncement').addEventListener('click',sendAnnouncement);
+$('refreshAnnouncements').addEventListener('click',loadAnnouncements);
+
+$('logoutBtn').addEventListener('click',async()=>{
+  await db.auth.signOut();
+  $('dashboard').classList.add('hidden');
+  $('loginBox').classList.remove('hidden');
+});
+
+async function start(){
+  try{
+    const {data,error}=await db.auth.getSession();
+    if(error) throw error;
+    if(data.session){
+      await verifyAdmin(data.session.user);
+    }
+  }catch(e){
+    $('dashboard').classList.add('hidden');
+    $('loginBox').classList.remove('hidden');
+    showMsg('loginMsg',e.message);
   }
 }
 
